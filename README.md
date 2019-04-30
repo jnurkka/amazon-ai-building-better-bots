@@ -63,17 +63,27 @@ First, we'll create the bot.
     - IAM role:  (accept the default) `AWSServiceRoleForLexBots`
 	- COPPA:  (our bot is not directed at children) `No`
 
+Take a moment to look through the tabs,
+
+    - Settings, General for voice selection, timeout etc, and Aliases
+    - Channels, for potential integrations
+    - Monitoring
+
+Go back to the Editor tab for the next step.
 
 #### Create Order Beverage Intent
 
 ![Intents](./images/intents.png)
+
+An Intent defines a goal a User would like to achieve. 
 
 From the left, add a new Intent called `cafeOrderBeverageIntent` with the following settings and click "Save Intent" to save the Intent.  
 To work independently in a shared environment, use your initials in the Intent name (e.g., `cafeOrderBeverageIntentXXX`).
 
 Add the following options to your intent:
 
-1. Sample Utterances:  add these to the list of sample utterances so the bot recognizes similar phrases (each entry on a separate line)
+1. Sample Utterances:  add these to the list of sample utterances so the bot recognizes similar phrases (each entry on a separate line). 
+How would you order a drink? If you think a phrase structure is missing, please add it!
 ```
 I would like a {BeverageSize} {BeverageType}
 Can I get a {BeverageType}
@@ -90,6 +100,10 @@ When everything is entered, choose "Save Intent" at the bottom.
 #### Create Slot types
 
 In the upper left hand corner, select the "+" next to "Slot Type" to add new slots to your account.
+
+Slots are lists of values that populate the place holders from the Intent.
+They can either be an explicit list if you select the 'Restrict to Slot values and Synonyms' option for Slot Values, or used as training data with the 'Expand Values' option, 
+in which case the customer request will be used verbatim after capture.
 
 ![Slots](./images/slots.png)
 
@@ -110,6 +124,8 @@ Slot type name | Description | Values (each entry on a separate line)
 Navigate back to the intent page of your cafeOrderBeverageIntent, locate "Slots" midway down the page.
 
 Add the following entries to the list of Slots, choosing the Slot Types created above.  Click "Save Intent".
+
+The 'Required' flag can be set after the Slot has been added to the Intent.
 
 Required | Name            | Slot type | Prompt
 -------- | --------------- | --------- | -------------
@@ -134,10 +150,15 @@ Required | Name            | Slot type | Prompt
 
 Click the build icon in the upper right hand corner to build the app.  This can take a few minutes.
 
-Once built, a new panel will appear on the right of the Amazon Lex Console where you can test some of the Utterances in the Test Bot dialog.  For example, if you say `May I have a coffee?`, does Lex correctly map `coffee` to the `BeverageType` slot?
+Once built, a new panel will appear on the right of the Amazon Lex Console where you can test some of the Utterances in the Test Bot dialog, and see how the input is assigned to the Slots. 
+
+For example, if you say `May I have a coffee?`, does Lex correctly map `coffee` to the `BeverageType` slot?
+
+Click the microphone icon to speak to the bot, and click it again when you have stopped speaking to send the voice recording for handling.
+
 
 ## Lambda Function
-Now that we've tested that our application works, let's add more logic to validate our choices and handle the processing of the order.  We'll be using another service called AWS Lambda to do this.  AWS Lambda lets you run code without provisioning or managing servers. You pay only for the compute time you consume.
+Now that we've tested that our chat bot works, let's add more logic to validate our choices and handle the processing of the order.  We'll be using another service called AWS Lambda to do this.  AWS Lambda lets you run code without provisioning or managing servers. You pay only for the compute time you consume.
 
 Choose "Services" from the navigation bar at the top of the page, and search for "Lambda".
 
@@ -146,10 +167,7 @@ Choose "Services" from the navigation bar at the top of the page, and search for
 1. Select "Create function" in the upper right hand corner
 1. To work independently in a shared environment, use your initials in the function name (e.g., `cafeOrderCoffeeXXX`)
 1. Leave NodeJS selected as the runtime.
-1. Choose an IAM role that includes the `AWSLambdaBasicExecutionRole` Managed Policy.  There may already be one named `coffeebot-lambda-role`
-    - If no such role exists, you can create a new IAM Role using one of these approaches:
-        - Choose "Create new role from template(s)", provide a role name, and choose `Basic Lambda permissions` from the "Policy templates" dropdown
-        - Choose "Create a Custom role", which should open up a new tab where an IAM role is shown; review the policy document and click "Allow"
+1. Expand the 'Choose or create an execution role' setting, and choose an IAM role that includes the `AWSLambdaBasicExecutionRole` Managed Policy by choosing "Create new role with basic Lambda permissions"
 
 ![Lambda](./images/lambda.png)
 
@@ -173,18 +191,25 @@ Now we'll configure a test event to ensure our Lambda function works.
 Navigate back to the Amazon Lex console to reconfigure your bot to use the Lambda function for validation.  
 
 1. From the Lex Console, select the `CoffeeBot` bot and choose `Latest` from the version drop down to make changes
-1. Modify the `cafeOrderBeverageIntent` Intent
-	- Associate it with the new `cafeOrderCoffee` Lambda function (select "Lambda function" in the "Lambda initialization and validation" area)
-		-  When prompted, allow Amazon Lex to call your new function
-	- Associate it with the new `cafeOrderCoffee` Lambda function for (select "Lambda function" in the "Fulfillment" area); remember to click "Save Intent"
-    	-  The Lambda function overrides the "Goodbye message"
+1. Modify the `cafeOrderBeverageIntent` Intent, associating the Lambda to the two lifecycle hooks
+    - Lambda initialization and validation
+        - select "Lambda function" in the "Lambda initialization and validation" area
+        - choose your Lambda function
+        - When prompted, allow Amazon Lex to call your new function
+    - Fulfillment
+        - select "Lambda function" in the "Fulfillment" area
+        - choose your Lambda function
+    	- the Lambda function now overrides the "Goodbye message"
+1. Save the Intent        
 1. Build the bot
-1. Test using the Amazon Lex Console; do you see any responses when you ask `May I have a coffee?`
+1. Once the build has completed, test it using the Amazon Lex Console; do you see any responses when you ask `May I have a coffee?`
 
-Try to order a beverage like a coffee.  You should see a message stating that it is not available.  Now try to order a mocha or a chai and see the response.  To understand why you're getting a different response than earlier, take look at the source code for the lambda validation.
+Try to order a beverage like a coffee.  You should see a message stating that it is not available.  Now try to order a mocha or a chai using the reponse card buttons, and see the response.  
+
+To understand why you're getting a different response than earlier, take look at the source code for the lambda validation, specifically the `orderBeverage` and `buildResponseCard` functions.
 
 ## Android or Web Application
-If you'd like to explore further, you can integrate your Amazon Lex bot with an Android application or a web page.  This is where you'd use the "Publish" feature of Lex to push your configured version to production.
+If you'd like to explore further, you can integrate your Amazon Lex bot with a native Android application or a web page.  This is where you'd use the "Publish" feature of Lex to push your configured version to production. Press the Publish button, and provide an Alias to this version of the CoffeeBot, such as `Production`.
 
 ### Android Application 
 You'll need the following in addition to your AWS account:
@@ -194,7 +219,7 @@ You'll need the following in addition to your AWS account:
     - A USB cable for USB debugging ([more info for Amazon Fire tablets](https://developer.amazon.com/public/solutions/devices/fire-tablets/app-development/setting-up-your-development-environment-for-fire-tablets))
 
 
-1. From the Mobile Hub console, create a new project called `CoffeeBot`.
+1. From the AWS Mobile Hub console, create a new project called `CoffeeBot`.
 1. Add the "Conversational Bots" feature to the project.  When prompted, import `CoffeeBot`.  Mobile Hub takes care of a number of important details behind the scenes.  A new Amazon Cognito Federated Identity Pool is created for this new app along with roles so that the users can interact with Lex (using voice and text).
 1. Source code for the new app is immediately available for download.
 1. Follow the instructions in the `READ_ME/index.html` file to setup, compile, and run the app.
