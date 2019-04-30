@@ -36,18 +36,15 @@ First, we'll create the Amazon Lex bot.  Then, we'll add some Lambda Functions t
 We will be creating a custom bot in the console and applying the necessary intents and custom slots in order to understand the coffee order.
 
 ### Navigate to Lex in the AWS Console
-Because of the large number of students in the class, we'll be using individual accounts provided by AWS for this lab.  If you're in the room with the instructor, pair up with a partner and ask for the login URL for your account.
-
-The login credentials are as follows:
-
-  - Username: 
-  - Password: 
+Navigate to [the AWS console](https://console.aws.amazon.com), and login to your account.
 
 Once you are logged into your AWS account, you will be presented with a list of AWS services and a search box.  Type "Lex" into the search box and choose the "Amazon Lex" service.
 
 ![Console](./images/console.png)
 
-You may be directed to select at region.  At the time of writing, Lex is only available in the Virginia and Ireland regions.  Choose the region that is the closest to you or the one that the instructor directs.
+You may be directed to select at region.  
+At the time of writing, Lex is available in the Virginia, Ireland, Sydney and Oregon regions, we'll use Ireland as it's the nearest. If you're not prompted, then please set the region to Ireland anyway.
+
 
 ![Region](./images/region.png)
 
